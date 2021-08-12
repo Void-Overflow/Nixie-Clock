@@ -1,3 +1,4 @@
+#include <Wire.h>
 #include <RTClib.h>
 
 RTC_DS1307 rtc;
@@ -26,17 +27,17 @@ void write_nixie(short address, short number){
     break;
 
     case 2:
-    digitalWrite(tubes[address][0], HIGH);
+    digitalWrite(tubes[address][0], LOW);
     digitalWrite(tubes[address][1], LOW);
     digitalWrite(tubes[address][2], LOW);
-    digitalWrite(tubes[address][3], LOW);
+    digitalWrite(tubes[address][3], HIGH);
     break;
 
     case 3:
-    digitalWrite(tubes[address][0], LOW);
+    digitalWrite(tubes[address][0], HIGH);
     digitalWrite(tubes[address][1], HIGH);
     digitalWrite(tubes[address][2], HIGH);
-    digitalWrite(tubes[address][3], HIGH);
+    digitalWrite(tubes[address][3], LOW);
     break;
 
     case 4:
@@ -47,38 +48,38 @@ void write_nixie(short address, short number){
     break;
 
     case 5:
-    digitalWrite(tubes[address][0], LOW);
-    digitalWrite(tubes[address][1], HIGH);
-    digitalWrite(tubes[address][2], LOW);
-    digitalWrite(tubes[address][3], HIGH);
+    digitalWrite(tubes[address][0], HIGH);
+    digitalWrite(tubes[address][1], LOW);
+    digitalWrite(tubes[address][2], HIGH);
+    digitalWrite(tubes[address][3], LOW);
     break;
 
     case 6:
     digitalWrite(tubes[address][0], LOW);
+    digitalWrite(tubes[address][1], LOW);
+    digitalWrite(tubes[address][2], HIGH);
+    digitalWrite(tubes[address][3], LOW);
+    break;
+
+    case 7:
+    digitalWrite(tubes[address][0], HIGH);
     digitalWrite(tubes[address][1], HIGH);
     digitalWrite(tubes[address][2], LOW);
     digitalWrite(tubes[address][3], LOW);
     break;
 
-    case 7:
-    digitalWrite(tubes[address][0], LOW);
-    digitalWrite(tubes[address][1], LOW);
-    digitalWrite(tubes[address][2], HIGH);
-    digitalWrite(tubes[address][3], HIGH);
-    break;
-
     case 8:
     digitalWrite(tubes[address][0], LOW);
-    digitalWrite(tubes[address][1], LOW);
-    digitalWrite(tubes[address][2], HIGH);
+    digitalWrite(tubes[address][1], HIGH);
+    digitalWrite(tubes[address][2], LOW);
     digitalWrite(tubes[address][3], LOW);
     break;
 
     case 9:
-    digitalWrite(tubes[address][0], LOW);
+    digitalWrite(tubes[address][0], HIGH);
     digitalWrite(tubes[address][1], LOW);
     digitalWrite(tubes[address][2], LOW);
-    digitalWrite(tubes[address][3], HIGH);
+    digitalWrite(tubes[address][3], LOW);
     break;
 
     default:
@@ -105,19 +106,19 @@ void setup() {
 
   Serial.println("\n");
 
-  bool RTC_Flag = false;
-  if (!rtc.begin()) 
-    RTC_Flag = true;
+ if (! rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+  }
 
-  if (!rtc.isrunning() && RTC_Flag == false) 
+  if (! rtc.isrunning()) {
+    Serial.println("RTC is NOT running!");
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-
-  if (rtc.isrunning() && rtc.begin()){}
+  }
 }
 
 void loop() {
   //TEST
-  for(int i = 0; i <= 9; i++){
+  /*for(int i = 0; i <= 9; i++){
     for(int id = 0; id <= 4; id++){
       write_nixie(id, i);
       Serial.println("Writing " + String(i) + " To Nixie Number " + String(id) + "!");
@@ -125,11 +126,12 @@ void loop() {
       delay(10);
     }
     delay(500);
-  }
+  }*/
 
   //CLOCK
-  /*DateTime now = rtc.now();
+  DateTime now = rtc.now();
   int hrs = now.hour();
+  int minute = now.minute();
 
   if (hrs == 0 && hrs != 12) {
     hrs = 12;
@@ -141,15 +143,23 @@ void loop() {
     hrs = hrs - 12;
   }
 
-  int one = (hour / 10) % 10;
-  int two = hour % 10;
+  int one = (hrs / 10) % 10;
+  int two = hrs % 10;
   int three =  (minute / 10) % 10;
   int four = minute % 10;
 
-  write_nixie(1, one);
-  write_nixie(2, two);
-  write_nixie(3, three);
-  write_nixie(4, four);*/
+  if(one > 1){}
+  
+  else{
+    write_nixie(0, one);
+    write_nixie(1, two);
+    write_nixie(2, three);
+    write_nixie(3, four);
+  }
+  
+  Serial.print(String(one) + String(two));
+  Serial.print(":");
+  Serial.println(String(three) +  String(four));
 
   delay(1000);
 }
