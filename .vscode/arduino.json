@@ -1,0 +1,6 @@
+{
+    "configuration": "cpu=atmega328",
+    "board": "arduino:avr:nano",
+    "port": "COM5",
+    "sketch": "Code\\Nixe Clock\\Clock.ino"
+}
