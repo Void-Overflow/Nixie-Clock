@@ -1,7 +1,13 @@
 #include <Wire.h>
 #include <RTClib.h>
+#include <EEPROM.h>
 
 RTC_DS1307 rtc;
+
+static const String daysOfTheWeek[7] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+bool firstSundayPassed = false;
+int DSTCorrection = 0;
+int firstSundayDate = 0;
 
 int tubes[4][4] = {
   {A3, A2, A1, A0},
@@ -114,6 +120,9 @@ void setup() {
     Serial.println("RTC is NOT running!");
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
+  DSTCorrection = EEPROM.read(0);
+  firstSundayPassed = EEPROM.read(1);
+  firstSundayDate = EEPROM.read(2);
 }
 
 void loop() {
@@ -132,7 +141,40 @@ void loop() {
   DateTime now = rtc.now();
   int hrs = now.hour();
   int minute = now.minute();
+  
+  String day = daysOfTheWeek[now.dayOfTheWeek()];
+  int month = now.month();
+  hrs -= DSTCorrection; 
+  Serial.println(hrs);
+  //November DST correction
+  if(month == 11 && day == "Sunday" && hrs == 2 && firstSundayPassed == false){
+    DSTCorrection = 1;
+    firstSundayPassed = true;
+  }
+  else if (month == 12){
+    DSTCorrection = 1;
+    firstSundayPassed = false;
+  }
 
+  //March DST correction
+  if(month == 3 && day == "Sunday" && firstSundayPassed == false){
+    firstSundayPassed = true;
+    firstSundayDate = now.day();
+  }
+  else if(month == 3 && day == "Sunday" && hrs == 2 && firstSundayPassed == true && now.day() != firstSundayDate){
+    DSTCorrection = 0;
+  }
+  else if (month == 4){
+    firstSundayPassed = false;
+    firstSundayDate = 0;
+    DSTCorrection = 0;
+  }
+  EEPROM.write(0, DSTCorrection);
+  EEPROM.write(1, firstSundayPassed);
+  EEPROM.write(2, firstSundayDate);
+  
+  if(hrs < 0)
+    hrs = 23;
   if (hrs == 0 && hrs != 12) {
     hrs = 12;
   } else if (hrs == 12 && hrs != 0) {
@@ -142,7 +184,7 @@ void loop() {
   } else if (hrs > 12 && hrs != 0) {
     hrs = hrs - 12;
   }
-
+  
   int one = (hrs / 10) % 10;
   int two = hrs % 10;
   int three =  (minute / 10) % 10;
@@ -159,7 +201,9 @@ void loop() {
   
   Serial.print(String(one) + String(two));
   Serial.print(":");
-  Serial.println(String(three) +  String(four));
+  Serial.print(String(three) +  String(four));
+  Serial.print(":");
+  Serial.println(day + "/" + String(month));
 
-  delay(1000);
+  delay(1000 - 10);
 }
