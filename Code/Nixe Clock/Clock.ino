@@ -144,15 +144,15 @@ void loop() {
   
   String day = daysOfTheWeek[now.dayOfTheWeek()];
   int month = now.month();
-  hrs -= DSTCorrection; 
+  hrs += DSTCorrection; 
   Serial.println(hrs);
   //November DST correction
   if(month == 11 && day == "Sunday" && hrs == 2 && firstSundayPassed == false){
-    DSTCorrection = 1;
+    DSTCorrection = 0;
     firstSundayPassed = true;
   }
   else if (month == 12){
-    DSTCorrection = 1;
+    DSTCorrection = 0;
     firstSundayPassed = false;
   }
 
@@ -162,12 +162,12 @@ void loop() {
     firstSundayDate = now.day();
   }
   else if(month == 3 && day == "Sunday" && hrs == 2 && firstSundayPassed == true && now.day() != firstSundayDate){
-    DSTCorrection = 0;
+    DSTCorrection = 1;
   }
   else if (month == 4){
     firstSundayPassed = false;
     firstSundayDate = 0;
-    DSTCorrection = 0;
+    DSTCorrection = 1;
   }
   EEPROM.write(0, DSTCorrection);
   EEPROM.write(1, firstSundayPassed);
